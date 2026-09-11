@@ -37,21 +37,29 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.DashboardCustomize
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.EditNote
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material.icons.filled.WorkspacePremium
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -127,6 +135,7 @@ fun GeneratorScreen(
     includeExplanations: Boolean,
     specificRuleFilter: String,
     outputStructure: OutputStructure,
+    selectedTemplate: com.example.data.model.WorksheetTemplate,
     isGenerating: Boolean,
     generationProgressMessage: String,
     activeWorksheet: ActiveWorksheet?,
@@ -139,6 +148,7 @@ fun GeneratorScreen(
     onSetIncludeExplanations: (Boolean) -> Unit,
     onSetSpecificRuleFilter: (String) -> Unit,
     onSetOutputStructure: (OutputStructure) -> Unit,
+    onSetSelectedTemplate: (com.example.data.model.WorksheetTemplate) -> Unit,
     onLoadSampleHtml: () -> Unit,
     onStartGeneration: () -> Unit,
     onSaveToLibrary: () -> Unit,
@@ -148,6 +158,13 @@ fun GeneratorScreen(
     onTriggerPaywall: (String) -> Unit
 ) {
     val context = LocalContext.current
+    var step by remember { mutableStateOf(1) }
+
+    LaunchedEffect(activeWorksheet) {
+        if (activeWorksheet == null) {
+            step = 1
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -156,8 +173,199 @@ fun GeneratorScreen(
             .testTag("generator_screen"),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // Mode Selector Header (Topic vs HTML Input) with Frosted Glass AI Tutor finish
-        item {
+        if (activeWorksheet == null && step == 1) {
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AutoAwesome,
+                        contentDescription = null,
+                        tint = IndigoPrimary,
+                        modifier = Modifier.size(48.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Worksheet Generator",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = IndigoPrimary
+                        )
+                    )
+                    Text(
+                        text = "Select a template to craft your personalized lesson",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+
+            item {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val templates = listOf(
+                        com.example.data.model.WorksheetTemplate.FILL_IN_BLANKS to Triple(
+                            "Fill-in-the-Blanks",
+                            "Sentence-level blanks targeting contextual grammar, verb conjugations, and vocabulary tests.",
+                            Icons.Filled.EditNote
+                        ),
+                        com.example.data.model.WorksheetTemplate.MULTIPLE_CHOICE to Triple(
+                            "Multiple Choice",
+                            "Classic 4-option diagnostic questions for formal grammar quizzes and interactive practice.",
+                            Icons.Filled.Quiz
+                        ),
+                        com.example.data.model.WorksheetTemplate.SENTENCE_CORRECTION to Triple(
+                            "Sentence Correction",
+                            "Constructive rewrite and transformation exercises to build high-level syntax and error correction skills.",
+                            Icons.Filled.Spellcheck
+                        ),
+                        com.example.data.model.WorksheetTemplate.MIXED_FORMAT to Triple(
+                            "Mixed Format Assessment",
+                            "A comprehensive blend of blanks, multiple choice, and rewrites for complete lesson checkups.",
+                            Icons.Filled.DashboardCustomize
+                        )
+                    )
+
+                    templates.forEach { (template, details) ->
+                        val (title, description, icon) = details
+                        val isSelected = selectedTemplate == template
+
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(20.dp))
+                                .border(
+                                    width = if (isSelected) 2.5.dp else 1.dp,
+                                    color = if (isSelected) IndigoPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                                .clickable { onSetSelectedTemplate(template) }
+                                .testTag("template_card_${template.name.lowercase()}"),
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) {
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                                } else {
+                                    MaterialTheme.colorScheme.surface
+                                }
+                            ),
+                            elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 1.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(52.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(
+                                            if (isSelected) IndigoPrimary else MaterialTheme.colorScheme.surfaceVariant
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(16.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isSelected) IndigoPrimary else MaterialTheme.colorScheme.onSurface
+                                            )
+                                        )
+                                        if (isSelected) {
+                                            Icon(
+                                                imageVector = Icons.Filled.CheckCircle,
+                                                contentDescription = "Selected",
+                                                tint = IndigoPrimary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = { step = 2 },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .testTag("continue_to_customization_button"),
+                    colors = ButtonDefaults.buttonColors(containerColor = IndigoPrimary),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        "Continue to Customization",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                }
+            }
+        }
+
+        if (activeWorksheet == null && step == 2) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { step = 1 }
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = IndigoPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Change Template (Selected: ${selectedTemplate.displayName})",
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = IndigoPrimary
+                        )
+                    )
+                }
+            }
+
+            // Mode Selector Header (Topic vs HTML Input) with Frosted Glass AI Tutor finish
+            item {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -585,6 +793,7 @@ fun GeneratorScreen(
             }
         }
     }
+}
 
         // Processing Loading State Animation Box
         if (isGenerating) {

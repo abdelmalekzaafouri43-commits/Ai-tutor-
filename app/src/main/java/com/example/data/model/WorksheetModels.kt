@@ -88,3 +88,40 @@ data class UserSubscription(
     val userRole: String = "English Department Chair",
     val schoolName: String = "Oakwood Academy"
 )
+
+enum class WorksheetTemplate(
+    val id: String,
+    val displayName: String,
+    val description: String,
+    val iconName: String,
+    val targetType: QuestionType?
+) {
+    FILL_IN_BLANKS(
+        id = "fill_in_blanks",
+        displayName = "Fill-in-the-Blanks",
+        description = "Create focused exercises where students fill in grammar-specific blank slots with accurate structures.",
+        iconName = "fill_blank",
+        targetType = QuestionType.FILL_IN_BLANK
+    ),
+    MULTIPLE_CHOICE(
+        id = "multiple_choice",
+        displayName = "Multiple Choice Quiz",
+        description = "Generate standard four-option multiple choice questions to assess core grammar comprehension.",
+        iconName = "multiple_choice",
+        targetType = QuestionType.MULTIPLE_CHOICE
+    ),
+    SENTENCE_CORRECTION(
+        id = "sentence_correction",
+        displayName = "Sentence Correction",
+        description = "Create advanced rewriting and sentence transformation challenges to build synthetic sentence skills.",
+        iconName = "sentence_correction",
+        targetType = QuestionType.SHORT_ANSWER
+    ),
+    MIXED_FORMAT(
+        id = "mixed_format",
+        displayName = "Complete Lesson (Mixed)",
+        description = "A standard ESL/EFL lesson pairing theory summaries with a diverse suite of question formats.",
+        iconName = "mixed",
+        targetType = null
+    )
+}

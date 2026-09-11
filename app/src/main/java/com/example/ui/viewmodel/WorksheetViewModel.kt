@@ -84,6 +84,27 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
     private val _outputStructure = MutableStateFlow(OutputStructure.EXPLANATION_AND_EXERCISES)
     val outputStructure: StateFlow<OutputStructure> = _outputStructure.asStateFlow()
 
+    private val _selectedTemplate = MutableStateFlow(com.example.data.model.WorksheetTemplate.MIXED_FORMAT)
+    val selectedTemplate: StateFlow<com.example.data.model.WorksheetTemplate> = _selectedTemplate.asStateFlow()
+
+    fun setSelectedTemplate(template: com.example.data.model.WorksheetTemplate) {
+        _selectedTemplate.value = template
+        when (template) {
+            com.example.data.model.WorksheetTemplate.MULTIPLE_CHOICE -> {
+                _outputStructure.value = OutputStructure.MULTIPLE_CHOICE_QUIZ
+            }
+            com.example.data.model.WorksheetTemplate.FILL_IN_BLANKS -> {
+                _outputStructure.value = OutputStructure.EXERCISES_ONLY
+            }
+            com.example.data.model.WorksheetTemplate.SENTENCE_CORRECTION -> {
+                _outputStructure.value = OutputStructure.EXERCISES_ONLY
+            }
+            com.example.data.model.WorksheetTemplate.MIXED_FORMAT -> {
+                _outputStructure.value = OutputStructure.EXPLANATION_AND_EXERCISES
+            }
+        }
+    }
+
     // Generation Execution
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
@@ -201,6 +222,7 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
                 includeExplanations = _includeExplanations.value,
                 specificRuleFilter = _specificRuleFilter.value,
                 outputStructure = _outputStructure.value,
+                selectedTemplate = _selectedTemplate.value,
                 onProgressUpdate = { msg -> _generationProgressMessage.value = msg }
             )
 

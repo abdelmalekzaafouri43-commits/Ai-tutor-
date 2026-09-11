@@ -51,6 +51,7 @@ class MainActivity : ComponentActivity() {
                     val includeExplanations by viewModel.includeExplanations.collectAsStateWithLifecycle()
                     val specificRuleFilter by viewModel.specificRuleFilter.collectAsStateWithLifecycle()
                     val outputStructure by viewModel.outputStructure.collectAsStateWithLifecycle()
+                    val selectedTemplate by viewModel.selectedTemplate.collectAsStateWithLifecycle()
 
                     val isGenerating by viewModel.isGenerating.collectAsStateWithLifecycle()
                     val generationProgressMessage by viewModel.generationProgressMessage.collectAsStateWithLifecycle()
@@ -89,6 +90,7 @@ class MainActivity : ComponentActivity() {
                                 includeExplanations = includeExplanations,
                                 specificRuleFilter = specificRuleFilter,
                                 outputStructure = outputStructure,
+                                selectedTemplate = selectedTemplate,
                                 isGenerating = isGenerating,
                                 generationProgressMessage = generationProgressMessage,
                                 activeWorksheet = activeWorksheet,
@@ -101,6 +103,7 @@ class MainActivity : ComponentActivity() {
                                 onSetIncludeExplanations = { include -> viewModel.setIncludeExplanations(include) },
                                 onSetSpecificRuleFilter = { filter -> viewModel.setSpecificRuleFilter(filter) },
                                 onSetOutputStructure = { structure -> viewModel.setOutputStructure(structure) },
+                                onSetSelectedTemplate = { template -> viewModel.setSelectedTemplate(template) },
                                 onLoadSampleHtml = { viewModel.loadSampleHtml() },
                                 onStartGeneration = { viewModel.startNewGeneration() },
                                 onSaveToLibrary = { viewModel.saveCurrentWorksheetToLibrary() },

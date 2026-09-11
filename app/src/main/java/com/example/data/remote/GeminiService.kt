@@ -34,17 +34,32 @@ object GeminiService {
         difficulty: DifficultyLevel,
         includeExplanations: Boolean,
         specificRule: String,
-        outputStructure: OutputStructure
+        outputStructure: OutputStructure,
+        selectedTemplate: com.example.data.model.WorksheetTemplate
     ): ActiveWorksheet = withContext(Dispatchers.IO) {
         val apiKey = try { BuildConfig.GEMINI_API_KEY } catch (e: Exception) { "" }
 
         if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
             // Key is not set or placeholder, fallback smoothly to local generator
-            return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
+            return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure, selectedTemplate)
         }
 
         val promptText = buildString {
             append("You are an expert ESL/EFL English Grammar Worksheet Creator. ")
+            when (selectedTemplate) {
+                com.example.data.model.WorksheetTemplate.FILL_IN_BLANKS -> {
+                    append("The worksheet must be in a 'Fill-in-the-Blanks' format. Every single question must be of type 'FILL_IN_BLANK' (options list must be empty, and the questionText must have a blank placeholder represented as '______' or similar). ")
+                }
+                com.example.data.model.WorksheetTemplate.MULTIPLE_CHOICE -> {
+                    append("The worksheet must be in a 'Multiple Choice' format. Every single question must be of type 'MULTIPLE_CHOICE' with exactly 4 clear options. ")
+                }
+                com.example.data.model.WorksheetTemplate.SENTENCE_CORRECTION -> {
+                    append("The worksheet must be in a 'Sentence Correction' or Sentence Transformation format. Every question must be of type 'SHORT_ANSWER' where students rewrite, correct, or transform a given sentence according to target rules. ")
+                }
+                com.example.data.model.WorksheetTemplate.MIXED_FORMAT -> {
+                    append("The worksheet should use a 'Mixed Format' with a diverse, elegant mix of multiple choice, fill-in-the-blanks, and sentence transformation questions to ensure comprehensive engagement. ")
+                }
+            }
             when (outputStructure) {
                 OutputStructure.EXERCISES_ONLY -> {
                     append("Generate a worksheet focusing strictly on practice exercises. Do not include any lesson introductions or explanations before the questions. ")
@@ -144,7 +159,7 @@ object GeminiService {
             val responseString = response.body?.string() ?: ""
 
             if (!response.isSuccessful || responseString.isBlank()) {
-                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
+                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure, selectedTemplate)
             }
 
             val responseJson = JSONObject(responseString)
@@ -155,7 +170,7 @@ object GeminiService {
             val text = parts?.optJSONObject(0)?.optString("text") ?: ""
 
             if (text.isBlank()) {
-                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
+                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure, selectedTemplate)
             }
 
             // Clean markdown code blocks if present
@@ -201,7 +216,7 @@ object GeminiService {
             }
 
             if (questionItems.isEmpty()) {
-                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
+                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure, selectedTemplate)
             }
 
             ActiveWorksheet(
@@ -217,7 +232,7 @@ object GeminiService {
 
         } catch (e: Exception) {
             e.printStackTrace()
-            generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
+            generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure, selectedTemplate)
         }
     }
 
@@ -227,7 +242,8 @@ object GeminiService {
         difficulty: DifficultyLevel,
         includeExplanations: Boolean,
         specificRule: String,
-        outputStructure: OutputStructure
+        outputStructure: OutputStructure,
+        selectedTemplate: com.example.data.model.WorksheetTemplate
     ): ActiveWorksheet {
         val questions = when (topic) {
             GrammarTopic.VERB_TENSES -> listOf(
@@ -292,19 +308,61 @@ object GeminiService {
             )
         }
 
-        val processedQuestions = if (outputStructure == OutputStructure.MULTIPLE_CHOICE_QUIZ) {
-            questions.map { q ->
-                if (q.type != QuestionType.MULTIPLE_CHOICE) {
-                    q.copy(
-                        type = QuestionType.MULTIPLE_CHOICE,
-                        options = listOf(q.correctAnswer, "Incorrect Option B", "Incorrect Option C", "Incorrect Option D").shuffled()
-                    )
-                } else {
-                    q
+        val processedQuestions = when (selectedTemplate) {
+            com.example.data.model.WorksheetTemplate.FILL_IN_BLANKS -> {
+                questions.map { q ->
+                    if (q.type != QuestionType.FILL_IN_BLANK) {
+                        q.copy(
+                            type = QuestionType.FILL_IN_BLANK,
+                            options = emptyList(),
+                            questionText = q.questionText.replace(Regex("_____|(?i)_______"), "_______")
+                        )
+                    } else {
+                        q
+                    }
                 }
             }
-        } else {
-            questions
+            com.example.data.model.WorksheetTemplate.MULTIPLE_CHOICE -> {
+                questions.map { q ->
+                    if (q.type != QuestionType.MULTIPLE_CHOICE) {
+                        q.copy(
+                            type = QuestionType.MULTIPLE_CHOICE,
+                            options = listOf(q.correctAnswer, "Incorrect Option A", "Incorrect Option B", "Incorrect Option C").shuffled()
+                        )
+                    } else {
+                        q
+                    }
+                }
+            }
+            com.example.data.model.WorksheetTemplate.SENTENCE_CORRECTION -> {
+                questions.map { q ->
+                    if (q.type != QuestionType.SHORT_ANSWER) {
+                        q.copy(
+                            type = QuestionType.SHORT_ANSWER,
+                            options = emptyList(),
+                            questionText = "Rewrite or correct this sentence: \"" + q.correctAnswer + "\" or transform it accordingly."
+                        )
+                    } else {
+                        q
+                    }
+                }
+            }
+            else -> {
+                if (outputStructure == OutputStructure.MULTIPLE_CHOICE_QUIZ) {
+                    questions.map { q ->
+                        if (q.type != QuestionType.MULTIPLE_CHOICE) {
+                            q.copy(
+                                type = QuestionType.MULTIPLE_CHOICE,
+                                options = listOf(q.correctAnswer, "Incorrect Option B", "Incorrect Option C", "Incorrect Option D").shuffled()
+                            )
+                        } else {
+                            q
+                        }
+                    }
+                } else {
+                    questions
+                }
+            }
         }
 
         return ActiveWorksheet(

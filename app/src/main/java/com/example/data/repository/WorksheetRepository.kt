@@ -67,6 +67,7 @@ class WorksheetRepository(private val worksheetDao: WorksheetDao) {
         includeExplanations: Boolean,
         specificRuleFilter: String,
         outputStructure: OutputStructure,
+        selectedTemplate: com.example.data.model.WorksheetTemplate,
         onProgressUpdate: (String) -> Unit
     ): Pair<String, List<QuestionItem>> {
         onProgressUpdate("Connecting to Gemini AI Engine...")
@@ -83,7 +84,8 @@ class WorksheetRepository(private val worksheetDao: WorksheetDao) {
             difficulty = difficulty,
             includeExplanations = includeExplanations,
             specificRule = specificRuleFilter,
-            outputStructure = outputStructure
+            outputStructure = outputStructure,
+            selectedTemplate = selectedTemplate
         )
 
         return Pair(activeWorksheet.title, activeWorksheet.questions)
