@@ -1,0 +1,6 @@
+{
+  "name": "AI Worksheet Tutor",
+  "description": "AI-powered English grammar worksheet generator for educators and students with interactive preview, custom options, and export features.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
