@@ -385,6 +385,7 @@ fun GeneratorScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Selection block for the output worksheet structure (Exercises, Explanations, or Quiz)
                     Text(
                         text = "Output Worksheet Structure",
                         style = MaterialTheme.typography.labelLarge.copy(
