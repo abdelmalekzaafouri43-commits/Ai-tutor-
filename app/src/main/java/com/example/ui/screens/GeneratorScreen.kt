@@ -1,3 +1,8 @@
+/*
+ * GeneratorScreen.kt
+ * Displays the AI Worksheet Tutor generation control panel with adjustable settings.
+ * Includes layout structure, grade levels, topics, output structure selection, and Gemini generation triggering.
+ */
 package com.example.ui.screens
 
 import android.widget.Toast
