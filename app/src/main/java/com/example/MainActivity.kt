@@ -33,8 +33,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val selectedTheme by viewModel.selectedTheme.collectAsStateWithLifecycle()
+            val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
 
-            AIWorksheetTutorTheme(appTheme = selectedTheme) {
+            AIWorksheetTutorTheme(appTheme = selectedTheme, isDarkMode = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -144,7 +145,9 @@ class MainActivity : ComponentActivity() {
                             NavItem.SETTINGS -> SettingsScreen(
                                 subscription = subscription,
                                 selectedTheme = selectedTheme,
+                                isDarkMode = isDarkMode,
                                 onSelectTheme = { theme -> viewModel.setSelectedTheme(theme) },
+                                onToggleDarkMode = { viewModel.toggleDarkMode() },
                                 onToggleTierDev = { viewModel.toggleSubscriptionTier() },
                                 onTriggerPaywall = { reason -> viewModel.triggerPaywall(reason) }
                             )

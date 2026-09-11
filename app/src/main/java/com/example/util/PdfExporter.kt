@@ -56,46 +56,87 @@ object PdfExporter {
 
         // Paints
         val primaryPaint = Paint().apply {
-            color = Color.rgb(63, 81, 181) // Indigo Primary
+            color = Color.rgb(79, 70, 229) // Indigo-600 (Modern Accent Primary)
             style = Paint.Style.FILL
             isAntiAlias = true
         }
 
         val textHeaderPaint = Paint().apply {
             color = Color.WHITE
-            textSize = 14f
+            textSize = 13f
             isFakeBoldText = true
             isAntiAlias = true
         }
 
         val titlePaint = Paint().apply {
-            color = Color.rgb(30, 41, 59)
-            textSize = 20f
+            color = Color.rgb(30, 27, 75) // Indigo-950 (Very deep elegant color)
+            textSize = 22f
             isFakeBoldText = true
             isAntiAlias = true
         }
 
         val subTitlePaint = Paint().apply {
-            color = Color.rgb(100, 116, 139)
-            textSize = 12f
+            color = Color.rgb(71, 85, 105) // Slate-600
+            textSize = 11f
             isAntiAlias = true
         }
 
         val bodyBoldPaint = Paint().apply {
-            color = Color.rgb(15, 23, 42)
-            textSize = 12f
+            color = Color.rgb(15, 23, 42) // Slate-900
+            textSize = 11.5f
             isFakeBoldText = true
             isAntiAlias = true
         }
 
         val bodyRegularPaint = Paint().apply {
-            color = Color.rgb(51, 65, 85)
+            color = Color.rgb(51, 65, 85) // Slate-700
             textSize = 11f
             isAntiAlias = true
         }
 
+        val questionNumberPaint = Paint().apply {
+            color = Color.rgb(67, 56, 202) // Indigo-700
+            textSize = 12f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+
+        val questionTextPaint = Paint().apply {
+            color = Color.rgb(15, 23, 42) // Slate-900 (High contrast)
+            textSize = 11.5f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+
+        val optionLetterPaint = Paint().apply {
+            color = Color.rgb(79, 70, 229) // Indigo-600
+            textSize = 11f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+
+        val hintLabelPaint = Paint().apply {
+            color = Color.rgb(217, 119, 6) // Amber-600 (Professional attention color)
+            textSize = 10f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+
+        val hintTextPaint = Paint().apply {
+            color = Color.rgb(120, 113, 108) // Stone-500
+            textSize = 10f
+            isAntiAlias = true
+        }
+
+        val correctKeyPaint = Paint().apply {
+            color = Color.rgb(5, 150, 105) // Emerald-600 (Clean success green)
+            textSize = 11.5f
+            isFakeBoldText = true
+            isAntiAlias = true
+        }
+
         val borderPaint = Paint().apply {
-            color = Color.rgb(203, 213, 225)
+            color = Color.rgb(226, 232, 240) // Slate-200
             style = Paint.Style.STROKE
             strokeWidth = 1f
             isAntiAlias = true
@@ -193,13 +234,13 @@ object PdfExporter {
             }
 
             val questionNum = "Q${index + 1}. "
-            canvas.drawText(questionNum, xMargin, yPos, bodyBoldPaint)
+            canvas.drawText(questionNum, xMargin, yPos, questionNumberPaint)
 
             // Split question text into lines if long
             val textStart = xMargin + 28f
 
             promptLines.forEachIndexed { lineIdx, line ->
-                canvas.drawText(line, if (lineIdx == 0) textStart else xMargin + 28f, yPos, bodyBoldPaint)
+                canvas.drawText(line, if (lineIdx == 0) textStart else xMargin + 28f, yPos, questionTextPaint)
                 if (lineIdx < promptLines.size - 1) yPos += 16f
             }
 
@@ -209,17 +250,23 @@ object PdfExporter {
             if (q.options != null && q.options.isNotEmpty()) {
                 q.options.forEachIndexed { optIdx, opt ->
                     val optLetter = ('A' + optIdx).toString()
-                    val optText = "   [   ] $optLetter) $opt"
-                    canvas.drawText(optText, xMargin + 20f, yPos, bodyRegularPaint)
+                    
+                    // Styled option row with colored elements
+                    canvas.drawText("   [   ] ", xMargin + 20f, yPos, bodyRegularPaint)
+                    canvas.drawText("$optLetter) ", xMargin + 52f, yPos, optionLetterPaint)
+                    canvas.drawText(opt, xMargin + 70f, yPos, bodyRegularPaint)
+                    
                     yPos += 16f
                 }
             } else {
-                canvas.drawText("Answer: ________________________________________________________________", xMargin + 20f, yPos, bodyRegularPaint)
+                canvas.drawText("Answer: ", xMargin + 20f, yPos, optionLetterPaint)
+                canvas.drawText("________________________________________________________________", xMargin + 72f, yPos, bodyRegularPaint)
                 yPos += 18f
             }
 
             if (q.hint != null) {
-                canvas.drawText("Hint: ${q.hint}", xMargin + 20f, yPos, subTitlePaint)
+                canvas.drawText("Hint: ", xMargin + 20f, yPos, hintLabelPaint)
+                canvas.drawText(q.hint, xMargin + 50f, yPos, hintTextPaint)
                 yPos += 16f
             }
 
@@ -265,13 +312,17 @@ object PdfExporter {
                     yPos = 50f
                 }
 
-                val keyText = "Q${index + 1}: Correct Answer -> ${q.correctAnswer}"
-                canvas.drawText(keyText, xMargin, yPos, bodyBoldPaint)
+                // Styled answer key row with colored parts
+                val qPrefix = "Q${index + 1}: "
+                val ansLabel = "Correct Answer -> "
+                canvas.drawText(qPrefix, xMargin, yPos, questionNumberPaint)
+                canvas.drawText(ansLabel, xMargin + 32f, yPos, bodyBoldPaint)
+                canvas.drawText(q.correctAnswer, xMargin + 32f + bodyBoldPaint.measureText(ansLabel), yPos, correctKeyPaint)
                 yPos += 16f
 
                 if (!q.explanation.isNullOrBlank()) {
-                    val explanationText = "Rule: ${q.explanation}"
-                    canvas.drawText(explanationText, xMargin + 10f, yPos, bodyRegularPaint)
+                    canvas.drawText("Rule: ", xMargin + 10f, yPos, optionLetterPaint)
+                    canvas.drawText(q.explanation, xMargin + 45f, yPos, bodyRegularPaint)
                     yPos += 18f
                 }
             }

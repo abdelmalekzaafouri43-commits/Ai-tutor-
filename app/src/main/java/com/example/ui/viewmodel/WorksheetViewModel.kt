@@ -52,6 +52,13 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
         _selectedTheme.value = theme
     }
 
+    private val _isDarkMode = MutableStateFlow(false)
+    val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
+
+    fun toggleDarkMode() {
+        _isDarkMode.value = !_isDarkMode.value
+    }
+
     // Subscription & Paywall
     private val _subscription = MutableStateFlow(UserSubscription(isPremium = false, dailyLimit = 3, generationsUsedToday = 1))
     val subscription: StateFlow<UserSubscription> = _subscription.asStateFlow()
