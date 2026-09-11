@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FolderSpecial
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -16,7 +17,9 @@ enum class NavItem(
 ) {
     DASHBOARD("dashboard", "Dashboard", Icons.Filled.Dashboard),
     NEW_GENERATION("new_generation", "New Generation", Icons.Filled.AutoAwesome, true),
+    PRACTICE("practice", "Interactive Practice", Icons.Filled.Quiz),
     SAVED_WORKSHEETS("saved_worksheets", "Saved Worksheets", Icons.Filled.FolderSpecial),
     ANALYTICS("analytics", "Analytics", Icons.Filled.Analytics),
     SETTINGS("settings", "Settings", Icons.Filled.Settings)
 }
+

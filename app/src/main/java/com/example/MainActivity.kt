@@ -17,6 +17,7 @@ import com.example.ui.navigation.NavItem
 import com.example.ui.screens.AnalyticsScreen
 import com.example.ui.screens.DashboardScreen
 import com.example.ui.screens.GeneratorScreen
+import com.example.ui.screens.PracticeScreen
 import com.example.ui.screens.SavedWorksheetsScreen
 import com.example.ui.screens.SettingsScreen
 import com.example.ui.theme.AIWorksheetTutorTheme
@@ -111,6 +112,19 @@ class MainActivity : ComponentActivity() {
                                 onSubmitQuiz = { viewModel.submitQuiz() },
                                 onResetQuiz = { viewModel.resetQuiz() },
                                 onTriggerPaywall = { reason -> viewModel.triggerPaywall(reason) }
+                            )
+
+                            NavItem.PRACTICE -> PracticeScreen(
+                                subscription = subscription,
+                                activeWorksheet = activeWorksheet,
+                                userAnswers = userAnswers,
+                                showResults = showResults,
+                                onRecordAnswer = { qId, ans -> viewModel.recordAnswer(qId, ans) },
+                                onSubmitQuiz = { viewModel.submitQuiz() },
+                                onResetQuiz = { viewModel.resetQuiz() },
+                                onSaveToLibrary = { viewModel.saveCurrentWorksheetToLibrary() },
+                                onTriggerPaywall = { reason -> viewModel.triggerPaywall(reason) },
+                                onNavigateToGenerator = { viewModel.navigateTo(NavItem.NEW_GENERATION) }
                             )
 
                             NavItem.SAVED_WORKSHEETS -> SavedWorksheetsScreen(

@@ -241,6 +241,7 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
 
             _activeWorksheet.value = generated
             _isGenerating.value = false
+            _currentNavItem.value = NavItem.PRACTICE
         }
     }
 
@@ -275,7 +276,7 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
         )
         _userAnswers.value = emptyMap()
         _showResults.value = false
-        _currentNavItem.value = NavItem.NEW_GENERATION
+        _currentNavItem.value = NavItem.PRACTICE
     }
 
     fun parseQuestions(json: String): List<QuestionItem> {

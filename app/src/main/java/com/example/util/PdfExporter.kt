@@ -148,14 +148,42 @@ object PdfExporter {
 
         yPos += 65f
 
+        // Page-level footer drawing helper
+        val drawPageFooter = { canvasObj: Canvas, pageNum: Int ->
+            val footerPaint = Paint().apply {
+                color = Color.rgb(148, 163, 184)
+                textSize = 9f
+                isAntiAlias = true
+            }
+            canvasObj.drawText("AI-Generated Grammar Worksheet • Page $pageNum", xMargin, 815f, footerPaint)
+            canvasObj.drawText("Practice & Learning Session", xMargin + contentWidth - 130f, 815f, footerPaint)
+        }
+
         // 4. Instructions Block
         canvas.drawText("INSTRUCTIONS: Read each question carefully and fill in or select the correct answer.", xMargin, yPos, bodyBoldPaint)
         yPos += 25f
 
         // 5. Questions Loop
         worksheet.questions.forEachIndexed { index, q ->
-            // Check if page overflow
-            if (yPos > pageHeight - 80f) {
+            // Pre-calculate exact height needed for this question to prevent layout breaks
+            val maxLineChars = 65
+            val promptLines = q.questionText.chunked(maxLineChars)
+            var requiredHeight = 0f
+            
+            requiredHeight += promptLines.size * 16f
+            if (q.options != null && q.options.isNotEmpty()) {
+                requiredHeight += q.options.size * 16f
+            } else {
+                requiredHeight += 18f
+            }
+            if (q.hint != null) {
+                requiredHeight += 16f
+            }
+            requiredHeight += 35f // base buffer for label headers and layout spacing
+
+            // Force dynamic page break if item overflows A4 height boundary
+            if (yPos > 50f && yPos + requiredHeight > pageHeight - 50f) {
+                drawPageFooter(canvas, pageNumber)
                 pdfDocument.finishPage(page)
                 pageNumber++
                 pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
@@ -169,8 +197,6 @@ object PdfExporter {
 
             // Split question text into lines if long
             val textStart = xMargin + 28f
-            val maxLineChars = 65
-            val promptLines = q.questionText.chunked(maxLineChars)
 
             promptLines.forEachIndexed { lineIdx, line ->
                 canvas.drawText(line, if (lineIdx == 0) textStart else xMargin + 28f, yPos, bodyBoldPaint)
@@ -203,7 +229,8 @@ object PdfExporter {
         // 6. Answer Key Footer / Section if present
         val hasExplanations = worksheet.questions.any { !it.explanation.isNullOrBlank() }
         if (hasExplanations) {
-            if (yPos > pageHeight - 150f) {
+            if (yPos > pageHeight - 120f) {
+                drawPageFooter(canvas, pageNumber)
                 pdfDocument.finishPage(page)
                 pageNumber++
                 pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
@@ -220,7 +247,16 @@ object PdfExporter {
             yPos += 20f
 
             worksheet.questions.forEachIndexed { index, q ->
-                if (yPos > pageHeight - 60f) {
+                // Calculate item height for answer key
+                var requiredItemHeight = 16f
+                if (!q.explanation.isNullOrBlank()) {
+                    val explanationLines = q.explanation.chunked(70)
+                    requiredItemHeight += explanationLines.size * 18f
+                }
+                requiredItemHeight += 15f
+
+                if (yPos > 50f && yPos + requiredItemHeight > pageHeight - 50f) {
+                    drawPageFooter(canvas, pageNumber)
                     pdfDocument.finishPage(page)
                     pageNumber++
                     pageInfo = PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create()
@@ -241,6 +277,7 @@ object PdfExporter {
             }
         }
 
+        drawPageFooter(canvas, pageNumber)
         pdfDocument.finishPage(page)
 
         // Save file to cache directory
