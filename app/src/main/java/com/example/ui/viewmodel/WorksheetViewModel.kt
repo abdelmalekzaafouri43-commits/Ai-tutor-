@@ -7,6 +7,7 @@ import com.example.data.local.AppDatabase
 import com.example.data.local.WorksheetEntity
 import com.example.data.model.DifficultyLevel
 import com.example.data.model.GrammarTopic
+import com.example.data.model.OutputStructure
 import com.example.data.model.QuestionItem
 import com.example.data.model.UserSubscription
 import com.example.data.repository.WorksheetRepository
@@ -80,6 +81,9 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
     private val _specificRuleFilter = MutableStateFlow("Focus on active vs passive transformations")
     val specificRuleFilter: StateFlow<String> = _specificRuleFilter.asStateFlow()
 
+    private val _outputStructure = MutableStateFlow(OutputStructure.EXPLANATION_AND_EXERCISES)
+    val outputStructure: StateFlow<OutputStructure> = _outputStructure.asStateFlow()
+
     // Generation Execution
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating.asStateFlow()
@@ -152,6 +156,10 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
         _specificRuleFilter.value = filter
     }
 
+    fun setOutputStructure(structure: OutputStructure) {
+        _outputStructure.value = structure
+    }
+
     fun triggerPaywall(reason: String) {
         _paywallReason.value = reason
         _showPaywallModal.value = true
@@ -192,6 +200,7 @@ class WorksheetViewModel(application: Application) : AndroidViewModel(applicatio
                 difficulty = _selectedDifficulty.value,
                 includeExplanations = _includeExplanations.value,
                 specificRuleFilter = _specificRuleFilter.value,
+                outputStructure = _outputStructure.value,
                 onProgressUpdate = { msg -> _generationProgressMessage.value = msg }
             )
 

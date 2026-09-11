@@ -232,56 +232,40 @@ fun SavedWorksheetsScreen(
 
                             OutlinedButton(
                                 onClick = {
-                                    if (subscription.isPremium) {
-                                        val active = ActiveWorksheet(
-                                            dbId = worksheet.id,
-                                            title = worksheet.title,
-                                            topic = worksheet.topic,
-                                            difficulty = worksheet.difficulty,
-                                            questions = onParseQuestions(worksheet.questionsJson),
-                                            isSaved = true
-                                        )
-                                        PdfExporter.generateAndSharePdf(context, active, subscription.schoolName)
-                                    } else {
-                                        onTriggerPaywall("Export to PDF is a Premium feature.")
-                                    }
+                                    val active = ActiveWorksheet(
+                                        dbId = worksheet.id,
+                                        title = worksheet.title,
+                                        topic = worksheet.topic,
+                                        difficulty = worksheet.difficulty,
+                                        questions = onParseQuestions(worksheet.questionsJson),
+                                        isSaved = true
+                                    )
+                                    PdfExporter.generateAndSharePdf(context, active, subscription.schoolName)
                                 },
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Icon(imageVector = Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(2.dp))
                                 Text("PDF", fontSize = 11.sp)
-                                if (!subscription.isPremium) {
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Icon(imageVector = Icons.Filled.Lock, contentDescription = "Locked", tint = GoldAmber, modifier = Modifier.size(10.dp))
-                                }
                             }
 
                             OutlinedButton(
                                 onClick = {
-                                    if (subscription.isPremium) {
-                                        val active = ActiveWorksheet(
-                                            dbId = worksheet.id,
-                                            title = worksheet.title,
-                                            topic = worksheet.topic,
-                                            difficulty = worksheet.difficulty,
-                                            questions = onParseQuestions(worksheet.questionsJson),
-                                            isSaved = true
-                                        )
-                                        PdfExporter.generateAndPrintPdf(context, active, subscription.schoolName)
-                                    } else {
-                                        onTriggerPaywall("Print PDF is a Premium feature.")
-                                    }
+                                    val active = ActiveWorksheet(
+                                        dbId = worksheet.id,
+                                        title = worksheet.title,
+                                        topic = worksheet.topic,
+                                        difficulty = worksheet.difficulty,
+                                        questions = onParseQuestions(worksheet.questionsJson),
+                                        isSaved = true
+                                    )
+                                    PdfExporter.generateAndPrintPdf(context, active, subscription.schoolName)
                                 },
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Icon(imageVector = Icons.Filled.Description, contentDescription = null, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(2.dp))
                                 Text("Print", fontSize = 11.sp)
-                                if (!subscription.isPremium) {
-                                    Spacer(modifier = Modifier.width(2.dp))
-                                    Icon(imageVector = Icons.Filled.Lock, contentDescription = "Locked", tint = GoldAmber, modifier = Modifier.size(10.dp))
-                                }
                             }
                         }
                     }

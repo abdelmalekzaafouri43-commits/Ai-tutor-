@@ -3,6 +3,7 @@ package com.example.data.remote
 import com.example.BuildConfig
 import com.example.data.model.DifficultyLevel
 import com.example.data.model.GrammarTopic
+import com.example.data.model.OutputStructure
 import com.example.data.model.QuestionItem
 import com.example.data.model.QuestionType
 import com.example.ui.viewmodel.ActiveWorksheet
@@ -32,17 +33,29 @@ object GeminiService {
         htmlCode: String,
         difficulty: DifficultyLevel,
         includeExplanations: Boolean,
-        specificRule: String
+        specificRule: String,
+        outputStructure: OutputStructure
     ): ActiveWorksheet = withContext(Dispatchers.IO) {
         val apiKey = try { BuildConfig.GEMINI_API_KEY } catch (e: Exception) { "" }
 
         if (apiKey.isBlank() || apiKey == "MY_GEMINI_API_KEY") {
             // Key is not set or placeholder, fallback smoothly to local generator
-            return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule)
+            return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
         }
 
         val promptText = buildString {
             append("You are an expert ESL/EFL English Grammar Worksheet Creator. ")
+            when (outputStructure) {
+                OutputStructure.EXERCISES_ONLY -> {
+                    append("Generate a worksheet focusing strictly on practice exercises. Do not include any lesson introductions or explanations before the questions. ")
+                }
+                OutputStructure.EXPLANATION_AND_EXERCISES -> {
+                    append("Generate a worksheet that includes a short theory explanation or lesson summary before the exercises. ")
+                }
+                OutputStructure.MULTIPLE_CHOICE_QUIZ -> {
+                    append("Generate a multiple choice quiz where EVERY question is of type MULTIPLE_CHOICE. Do not generate fill-in-the-blank or sentence transformation questions. All 4 questions must be multiple-choice with 4 options each. ")
+                }
+            }
             append("Generate an interactive 4-question grammar practice worksheet ")
             if (htmlCode.isNotBlank()) {
                 append("analyzing and extracting text content from this HTML snippet: \n```html\n$htmlCode\n```\n")
@@ -131,7 +144,7 @@ object GeminiService {
             val responseString = response.body?.string() ?: ""
 
             if (!response.isSuccessful || responseString.isBlank()) {
-                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule)
+                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
             }
 
             val responseJson = JSONObject(responseString)
@@ -142,7 +155,7 @@ object GeminiService {
             val text = parts?.optJSONObject(0)?.optString("text") ?: ""
 
             if (text.isBlank()) {
-                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule)
+                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
             }
 
             // Clean markdown code blocks if present
@@ -188,7 +201,7 @@ object GeminiService {
             }
 
             if (questionItems.isEmpty()) {
-                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule)
+                return@withContext generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
             }
 
             ActiveWorksheet(
@@ -204,7 +217,7 @@ object GeminiService {
 
         } catch (e: Exception) {
             e.printStackTrace()
-            generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule)
+            generateFallbackWorksheet(topic, htmlCode, difficulty, includeExplanations, specificRule, outputStructure)
         }
     }
 
@@ -213,7 +226,8 @@ object GeminiService {
         htmlCode: String,
         difficulty: DifficultyLevel,
         includeExplanations: Boolean,
-        specificRule: String
+        specificRule: String,
+        outputStructure: OutputStructure
     ): ActiveWorksheet {
         val questions = when (topic) {
             GrammarTopic.VERB_TENSES -> listOf(
@@ -278,12 +292,27 @@ object GeminiService {
             )
         }
 
+        val processedQuestions = if (outputStructure == OutputStructure.MULTIPLE_CHOICE_QUIZ) {
+            questions.map { q ->
+                if (q.type != QuestionType.MULTIPLE_CHOICE) {
+                    q.copy(
+                        type = QuestionType.MULTIPLE_CHOICE,
+                        options = listOf(q.correctAnswer, "Incorrect Option B", "Incorrect Option C", "Incorrect Option D").shuffled()
+                    )
+                } else {
+                    q
+                }
+            }
+        } else {
+            questions
+        }
+
         return ActiveWorksheet(
             dbId = null,
             title = if (htmlCode.isNotBlank()) "HTML Derived Grammar Sheet" else "${topic.title} Interactive Practice",
             topic = topic.title,
             difficulty = difficulty.displayName,
-            questions = questions,
+            questions = processedQuestions,
             rawInput = htmlCode,
             targetRules = specificRule,
             isSaved = false

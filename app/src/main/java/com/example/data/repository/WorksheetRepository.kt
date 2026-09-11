@@ -4,6 +4,7 @@ import com.example.data.local.WorksheetDao
 import com.example.data.local.WorksheetEntity
 import com.example.data.model.DifficultyLevel
 import com.example.data.model.GrammarTopic
+import com.example.data.model.OutputStructure
 import com.example.data.model.QuestionItem
 import com.example.data.model.QuestionType
 import com.squareup.moshi.Moshi
@@ -65,6 +66,7 @@ class WorksheetRepository(private val worksheetDao: WorksheetDao) {
         difficulty: DifficultyLevel,
         includeExplanations: Boolean,
         specificRuleFilter: String,
+        outputStructure: OutputStructure,
         onProgressUpdate: (String) -> Unit
     ): Pair<String, List<QuestionItem>> {
         onProgressUpdate("Connecting to Gemini AI Engine...")
@@ -80,7 +82,8 @@ class WorksheetRepository(private val worksheetDao: WorksheetDao) {
             htmlCode = rawHtmlOrText,
             difficulty = difficulty,
             includeExplanations = includeExplanations,
-            specificRule = specificRuleFilter
+            specificRule = specificRuleFilter,
+            outputStructure = outputStructure
         )
 
         return Pair(activeWorksheet.title, activeWorksheet.questions)

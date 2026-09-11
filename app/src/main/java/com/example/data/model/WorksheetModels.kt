@@ -14,6 +14,12 @@ enum class DifficultyLevel(val displayName: String, val colorHex: Long) {
     ADVANCED("Advanced (C1-C2)", 0xFF8B5CF6)
 }
 
+enum class OutputStructure(val displayName: String, val description: String) {
+    EXERCISES_ONLY("Exercises only", "Generates interactive practice questions directly."),
+    EXPLANATION_AND_EXERCISES("Explanation + Exercises", "Includes a concise grammar theory explanation before exercises."),
+    MULTIPLE_CHOICE_QUIZ("Multiple Choice Quiz", "Generates exclusively multiple-choice format questions.")
+}
+
 enum class GrammarTopic(
     val id: String,
     val title: String,

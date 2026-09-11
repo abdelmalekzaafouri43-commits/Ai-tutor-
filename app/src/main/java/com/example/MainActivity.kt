@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
                     val selectedDifficulty by viewModel.selectedDifficulty.collectAsStateWithLifecycle()
                     val includeExplanations by viewModel.includeExplanations.collectAsStateWithLifecycle()
                     val specificRuleFilter by viewModel.specificRuleFilter.collectAsStateWithLifecycle()
+                    val outputStructure by viewModel.outputStructure.collectAsStateWithLifecycle()
 
                     val isGenerating by viewModel.isGenerating.collectAsStateWithLifecycle()
                     val generationProgressMessage by viewModel.generationProgressMessage.collectAsStateWithLifecycle()
@@ -87,6 +88,7 @@ class MainActivity : ComponentActivity() {
                                 selectedDifficulty = selectedDifficulty,
                                 includeExplanations = includeExplanations,
                                 specificRuleFilter = specificRuleFilter,
+                                outputStructure = outputStructure,
                                 isGenerating = isGenerating,
                                 generationProgressMessage = generationProgressMessage,
                                 activeWorksheet = activeWorksheet,
@@ -98,6 +100,7 @@ class MainActivity : ComponentActivity() {
                                 onSetSelectedDifficulty = { diff -> viewModel.setSelectedDifficulty(diff) },
                                 onSetIncludeExplanations = { include -> viewModel.setIncludeExplanations(include) },
                                 onSetSpecificRuleFilter = { filter -> viewModel.setSpecificRuleFilter(filter) },
+                                onSetOutputStructure = { structure -> viewModel.setOutputStructure(structure) },
                                 onLoadSampleHtml = { viewModel.loadSampleHtml() },
                                 onStartGeneration = { viewModel.startNewGeneration() },
                                 onSaveToLibrary = { viewModel.saveCurrentWorksheetToLibrary() },

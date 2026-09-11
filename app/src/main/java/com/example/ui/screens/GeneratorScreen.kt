@@ -94,6 +94,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.DifficultyLevel
 import com.example.data.model.GrammarTopic
+import com.example.data.model.OutputStructure
 import com.example.data.model.QuestionItem
 import com.example.data.model.QuestionType
 import com.example.data.model.UserSubscription
@@ -120,6 +121,7 @@ fun GeneratorScreen(
     selectedDifficulty: DifficultyLevel,
     includeExplanations: Boolean,
     specificRuleFilter: String,
+    outputStructure: OutputStructure,
     isGenerating: Boolean,
     generationProgressMessage: String,
     activeWorksheet: ActiveWorksheet?,
@@ -131,6 +133,7 @@ fun GeneratorScreen(
     onSetSelectedDifficulty: (DifficultyLevel) -> Unit,
     onSetIncludeExplanations: (Boolean) -> Unit,
     onSetSpecificRuleFilter: (String) -> Unit,
+    onSetOutputStructure: (OutputStructure) -> Unit,
     onLoadSampleHtml: () -> Unit,
     onStartGeneration: () -> Unit,
     onSaveToLibrary: () -> Unit,
@@ -234,7 +237,7 @@ fun GeneratorScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(imageVector = Icons.Filled.Psychology, contentDescription = null, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Input Topic")
+                                    Text("Grammar Topic")
                                 }
                             },
                             selectedContentColor = IndigoPrimary,
@@ -247,7 +250,7 @@ fun GeneratorScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(imageVector = Icons.Filled.Code, contentDescription = null, modifier = Modifier.size(18.dp))
                                     Spacer(modifier = Modifier.width(6.dp))
-                                    Text("Paste Text / HTML")
+                                    Text("Paste HTML Code")
                                 }
                             },
                             selectedContentColor = IndigoPrimary,
@@ -271,7 +274,7 @@ fun GeneratorScreen(
                                     value = selectedTopic.title,
                                     onValueChange = {},
                                     readOnly = true,
-                                    label = { Text("Grammar Topic Category") },
+                                    label = { Text("Select Focus Grammar Topic") },
                                     trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = topicExpanded) },
                                     modifier = Modifier
                                         .menuAnchor()
@@ -312,7 +315,7 @@ fun GeneratorScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Pasted Text or Passage Input",
+                                    text = "HTML Code Input Area",
                                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold)
                                 )
                                 OutlinedButton(
@@ -320,7 +323,7 @@ fun GeneratorScreen(
                                     shape = RoundedCornerShape(8.dp),
                                     modifier = Modifier.testTag("load_sample_html_button")
                                 ) {
-                                    Text("Load Sample Text", fontSize = 12.sp)
+                                    Text("Load Sample HTML", fontSize = 12.sp)
                                 }
                             }
 
@@ -333,7 +336,7 @@ fun GeneratorScreen(
                                     .fillMaxWidth()
                                     .height(140.dp)
                                     .testTag("html_code_input"),
-                                placeholder = { Text("Paste custom reading passage, article text, or HTML code markup here...", fontFamily = FontFamily.Monospace) },
+                                placeholder = { Text("Paste raw HTML code markup here...", fontFamily = FontFamily.Monospace) },
                                 shape = RoundedCornerShape(12.dp),
                                 textStyle = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = IndigoPrimary)
@@ -376,6 +379,71 @@ fun GeneratorScreen(
                                         color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
                                     )
                                 )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "Output Worksheet Structure",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutputStructure.entries.forEach { structure ->
+                            val isSelected = outputStructure == structure
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(
+                                        if (isSelected) {
+                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
+                                        } else {
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                                        }
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (isSelected) IndigoPrimary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                                    .clickable { onSetOutputStructure(structure) }
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick = { onSetOutputStructure(structure) },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = IndigoPrimary
+                                    ),
+                                    modifier = Modifier.testTag("output_structure_${structure.name.lowercase()}")
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = structure.displayName,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (isSelected) IndigoPrimary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    )
+                                    Text(
+                                        text = structure.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
                         }
                     }
@@ -680,38 +748,26 @@ fun GeneratorScreen(
                             mainText = "Export PDF Worksheet",
                             mainIcon = Icons.Filled.Download,
                             isPremium = subscription.isPremium,
-                            isLockedForFree = true,
+                            isLockedForFree = false,
                             containerColor = MaterialTheme.colorScheme.secondary,
                             onMainClick = {
-                                if (subscription.isPremium) {
-                                    PdfExporter.generateAndSharePdf(context, activeWorksheet, subscription.schoolName)
-                                } else {
-                                    onTriggerPaywall("Export to PDF is a Premium feature. Upgrade to download formatted printable PDF worksheets.")
-                                }
+                                PdfExporter.generateAndSharePdf(context, activeWorksheet, subscription.schoolName)
                             },
                             menuItems = listOf(
                                 SplitMenuItem(
-                                    label = "Print PDF Worksheet (🔒)",
+                                    label = "Print PDF Worksheet",
                                     icon = Icons.Filled.Download,
-                                    isPremiumLocked = true,
+                                    isPremiumLocked = false,
                                     onClick = {
-                                        if (subscription.isPremium) {
-                                            PdfExporter.generateAndPrintPdf(context, activeWorksheet, subscription.schoolName)
-                                        } else {
-                                            onTriggerPaywall("Print PDF is a Premium feature. Upgrade to print formatted worksheets directly.")
-                                        }
+                                        PdfExporter.generateAndPrintPdf(context, activeWorksheet, subscription.schoolName)
                                     }
                                 ),
                                 SplitMenuItem(
-                                    label = "Export to Google Docs (🔒)",
+                                    label = "Export to Google Docs",
                                     icon = Icons.Filled.Description,
-                                    isPremiumLocked = true,
+                                    isPremiumLocked = false,
                                     onClick = {
-                                        if (subscription.isPremium) {
-                                            PdfExporter.generateAndSharePdf(context, activeWorksheet, subscription.schoolName)
-                                        } else {
-                                            onTriggerPaywall("Export to Google Docs is a Premium feature.")
-                                        }
+                                        PdfExporter.generateAndSharePdf(context, activeWorksheet, subscription.schoolName)
                                     }
                                 ),
                                 SplitMenuItem(
